@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>МАЯК-1 — Устройство формирующее</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      padding: 15px;
+      background: #f8f9fa;
+      max-width: 1400px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: #e0e0e0;
+      border: none;
+      border-radius: 6px 6px 0 0;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: #cfd8dc;
+    }
+
+    .tab-btn.active {
+      background: #1976d2;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 20px;
+      background: white;
+      border-radius: 0 6px 6px 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    h2 {
+      color: #2c3e50;
+      font-size: 1.4em;
+      margin-top: 0;
+    }
+
+    h3 {
+      color: #1565c0;
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+
+    p, li { margin: 8px 0; }
+    ul { padding-left: 20px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td {
+      padding: 8px 10px;
+      border: 1px solid #aaa;
+      text-align: left;
+      font-size: 0.9em;
+      vertical-align: top;
+    }
+    th { background: #e3f2fd; }
+
+    .input-group {
+      margin: 10px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    label {
+      display: inline-block;
+      width: 130px;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
+
+    input {
+      width: 100px;
+      padding: 8px;
+      font-size: 16px;
+      border: 2px solid #ced4da;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    input:invalid {
+      border-color: #e53935;
+      background-color: #fff8f8;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e6f0ff;
+      border-radius: 6px;
+      font-family: 'Consolas', monospace;
+      font-size: 14px;
+    }
+
+    .param {
+      margin-bottom: 10px;
+    }
+
+    .param-label {
+      color: #1565c0;
+      font-weight: bold;
+    }
+
+    .param-value {
+      font-weight: bold;
+    }
+
+    .param-detail {
+      font-size: 0.95em;
+      color: #555;
+      margin-left: 20px;
+      white-space: nowrap;
+    }
+
+    .warning {
+      color: #d32f2f;
+      font-weight: bold;
+      margin-top: 10px;
+      display: none;
+      padding: 10px;
+      background: #ffebee;
+      border-left: 4px solid #d32f2f;
+      border-radius: 4px;
+    }
+
+    .placeholder {
+      padding: 30px 0;
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .tabs { flex-direction: column; }
+      .tab-btn { border-radius: 6px; width: 100%; }
+      .input-group { flex-direction: column; align-items: stretch; }
+      label { width: 100%; text-align: left; }
+      input { width: 100%; }
+      td, th { font-size: 0.75em; padding: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="input">Ввод частоты</button>
+    <button class="tab-btn" data-tab="form">Устройство формирующее</button>
+    <button class="tab-btn" data-tab="urh">УРЧ</button>
+    <button class="tab-btn" data-tab="bz28">БЗ-28</button>
+    <button class="tab-btn" data-tab="sum">СУМ</button>
+    <button class="tab-btn" data-tab="pdu">ПДУ</button>
+  </div>
+
+  <!-- Вкладка: Ввод частоты -->
+  <div id="input" class="tab-content active">
+    <h2>Ввод частоты</h2>
+
+    <div class="input-group">
+      <label for="mhz">МГц (целые):</label>
+      <input type="number" id="mhz" value="1" min="1" max="29" step="1" required>
+    </div>
+
+    <div class="input-group">
+      <label for="khzInt">кГц (целая часть):</label>
+      <input type="number" id="khzInt" value="500" min="0" max="999" step="1" required>
+    </div>
+
+    <div class="input-group">
+      <label for="khzFrac">Сотые кГц (00–99):</label>
+      <input type="number" id="khzFrac" value="99" min="0" max="99" step="1" required>
+    </div>
+
+    <div id="warning" class="warning">Частота вне допустимого диапазона (1500.00–29999.99 кГц)</div>
+
+    <div class="result-box">
+      <div class="param">
+        <span class="param-label">Б1-6 МС (Ш6)</span> = 
+        <span class="param-value"><span id="ms_khz">13800.99</span> кГц = <span id="ms_mhz">13.80099</span> МГц</span>
+        <div class="param-detail">525±205 мВ, 75±10 Ом</div>
+      </div>
+
+      <div class="param">
+        <span class="param-label">Б1-2 Г2 (Ш5)</span> = 
+        <span class="param-value"><span id="g2_mhz">30</span> МГц</span>
+        <div class="param-detail">530⁺²²⁰₋₁₅₀ мВ, 75±4 Ом</div>
+      </div>
+
+      <div class="param">
+        <span class="param-label">Б1-2 Г3 (Ш1,Ш2)</span> = 
+        <span class="param-value"><span id="g3_mhz">44.50099</span> МГц</span>
+        <div class="param-detail">550⁺²⁵⁰₋₁₇₀ мВ, 75±4 Ом</div>
+      </div>
+
+      <div class="param">
+        <span class="param-label">Б2-5.1 Вых. Нес. (Ш6)</span> = 
+        <span class="param-value"><span id="f_out_mhz2">1.50099</span> МГц</span>
+        <div class="param-detail">—, 75±4 Ом</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Вкладка: Устройство формирующее — ТОЧНО ПО ТАБЛИЦЕ -->
+  <div id="form" class="tab-content">
+    <h2>Устройство формирующее (УФ)</h2>
+    <p>
+      <strong>Назначение:</strong> Формирующее устройство — основной функциональный модуль изделия МАЯК-1, отвечающий за генерацию, стабилизацию, управление и формирование высокочастотного сигнала с заданным видом модуляции (телефония, телеграфия) в диапазоне <strong>1,5–30 МГц</strong>.
+    </p>
+
+    <h3>Таблица сигналов по блокам</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Блок</th>
+          <th>Разъём</th>
+          <th>Сигнал</th>
+          <th>Назначение</th>
+          <th>Частота</th>
+          <th>Уровень</th>
+          <th>Нагрузка / вход</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Б1-6 -->
+        <tr><td>Б1-6</td><td>Ш3</td><td>100 кГц</td><td>Опорная частота для ФАПЧ</td><td>0,1 МГц</td><td>≥350 мВ</td><td>510 ± 15 Ом</td></tr>
+        <tr><td>Б1-6</td><td>Ш4, Ш5, Ш7</td><td>5 МГц (вн. ОГ)</td><td>Выход внутреннего опорного генератора</td><td>5 МГц</td><td>500⁺²⁰⁰₋₃₀₀ мВ</td><td>75 ± 15 Ом</td></tr>
+        <tr><td>Б1-6</td><td>Ш6</td><td>МС</td><td>Мелкая сетка (частота 3-го гетеродина)</td>
+          <td><strong><span id="form_ms">13.80099</span> МГц</strong> (диапазон 12,8 – 14,79999 МГц)</td>
+          <td>525 ± 205 мВ</td><td>75 ± 10 Ом</td></tr>
+        <tr><td>Б1-6</td><td>Ш8</td><td>ВХ. ОГ</td><td>Вход внешнего опорного генератора</td><td>5 МГц</td><td>350–650 мВ (по ТО п. 2.7)</td><td>75 ± 15 Ом *(вход)*</td></tr>
+        <tr><td>Б1-6</td><td>Ш9</td><td>Внутр. ОГ (контрольный)</td><td>Контрольный выход ОГ</td><td>5 МГц</td><td>500 ± 150 мВ</td><td>75 ± 8 Ом</td></tr>
+
+        <!-- Б1-2 -->
+        <tr><td>Б1-2</td><td>Ш3</td><td>МС</td><td>Вход мелкой сетки от Б1-6</td>
+          <td><strong><span id="form_ms_in">13.80099</span> МГц</strong> (12,8 – 14,8 МГц)</td>
+          <td>—</td><td>75 ± 10 Ом *(вход)*</td></tr>
+        <tr><td>Б1-2</td><td>Ш5</td><td>Г2 (25/30 МГц)</td><td>Второй гетеродин</td>
+          <td><strong><span id="form_g2">30</span> МГц</strong> (25 или 30 МГц)</td>
+          <td>530⁺²²⁰₋₁₅₀ мВ</td><td>75 ± 4 Ом</td></tr>
+        <tr><td>Б1-2</td><td>Ш7</td><td>Г2 (дублирующий)</td><td>Дублирующий выход Г2</td>
+          <td><strong><span id="form_g2_dup">30</span> МГц</strong> (как Ш5)</td>
+          <td>как Ш5</td><td>75 ± 4 Ом</td></tr>
+        <tr><td>Б1-2</td><td>Ш1, Ш2</td><td>Г3</td><td>Третий гетеродин</td>
+          <td><strong><span id="form_g3">44.50099</span> МГц</strong> (диапазон 42,8 – 72,8 МГц)</td>
+          <td>550⁺²⁵⁰₋₁₇₀ мВ</td><td>75 ± 4 Ом</td></tr>
+        <tr><td>Б1-2</td><td>Ш8</td><td>ВХ. 5 МГц</td><td>Вход опорного сигнала</td><td>5 МГц</td><td>—</td><td>≥600 Ом *(вход)*</td></tr>
+
+        <!-- Б1-14 -->
+        <tr><td>Б1-14</td><td>Ш1</td><td>Г1 (основной)</td><td>Первый гетеродин</td><td>12,672 МГц</td><td>350–730 мВ</td><td>75⁺¹⁵₋₂₅ Ом</td></tr>
+        <tr><td>Б1-14</td><td>Ш2</td><td>Г1 (дублирующий)</td><td>Выход на Б14-2.1</td><td>12,672 МГц</td><td>≥400 мВ</td><td>430 ± 10 Ом</td></tr>
+        <tr><td>Б1-14</td><td>Ш3</td><td>ВХ. коррекции ОГ</td><td>Вход эталонного 5 МГц для коррекции</td><td>5 МГц</td><td>500 ± 150 мВ</td><td>≥1 кОм *(вход)*</td></tr>
+        <tr><td>Б1-14</td><td>Ш4/15</td><td>128 кГц (пилот)</td><td>Опорный сигнал для модуляторов</td><td>128 кГц</td><td>100 ± 20 мВ</td><td>75 ± 4 Ом</td></tr>
+        <tr><td>Б1-14</td><td>Ш4/7</td><td>128 кГц (буферный)</td><td>Для Б4-24 и внешнего ВЫХ. МН</td><td>128 кГц</td><td>100–200 мВ</td><td>750 ± 250 Ом</td></tr>
+        <tr><td>Б1-14</td><td>Ш5</td><td>ВХ. 5 МГц (основной)</td><td>Вход опорного генератора</td><td>5 МГц</td><td>—</td><td>75 ± 15 Ом *(вход)*</td></tr>
+
+        <!-- Б4-24 -->
+        <tr><td>Б4-24</td><td>Ш4</td><td>ЛИН ВХ (А₁, В₁)</td><td>Входы телефонной информации</td><td>НЧ (300–3400 Гц)</td><td>0,2–2,7 В</td><td>600 Ом (симм.)</td></tr>
+        <tr><td>Б4-24</td><td>Ш5</td><td>ВЫХ. ПЧ (ОБП / F3)</td><td>Выход ПЧ (с информацией)</td><td>~128 кГц ± НЧ</td><td>225 ± 23 мВ (пик, 150 Ом)</td><td>150 Ом</td></tr>
+
+        <!-- Б14-2.1 -->
+        <tr><td>Б14-2.1</td><td>Ш1</td><td>ВХ. Г1</td><td>Вход первого гетеродина</td><td>12,672 МГц</td><td>—</td><td>≥400 Ом *(вход)*</td></tr>
+        <tr><td>Б14-2.1</td><td>Ш2</td><td>576 кГц</td><td>Тактовая для Б13-2</td><td>576 кГц</td><td>—</td><td>—</td></tr>
+        <tr><td>Б14-2.1</td><td>Ш4</td><td>Манип. I, II кан.</td><td>Входы телеграфной информации</td><td>импульсы</td><td>5–60 В (симм.)</td><td>1000 ± 100 Ом</td></tr>
+        <tr><td>Б14-2.1</td><td>Ш5</td><td>ВЫХ. ПЧ (Тлг)</td><td>Выход ПЧ телеграфии</td><td>~128 кГц ± Тлг</td><td>160 ± 25 мВ</td><td>—</td></tr>
+
+        <!-- Б13-2 -->
+        <tr><td>Б13-2</td><td>Ш2</td><td>576 кГц (вх.)</td><td>Тактовая от Б14-2.1</td><td>576 кГц</td><td>—</td><td>—</td></tr>
+        <tr><td>Б13-2</td><td>Ш3</td><td>6144 кГц (вх.)</td><td>Импульсная ПЧ от Б14-2.1</td><td>~6144 + информ. кГц</td><td>—</td><td>—</td></tr>
+        <tr><td>Б13-2</td><td>Ш1</td><td>ВЫХ. МНК</td><td>Выход многочастотной ПЧ</td><td>~128 кГц (сетка)</td><td>160 ± 40 мВ (кроме F9)</td><td>—</td></tr>
+
+        <!-- Б2-5.1 -->
+        <tr><td>Б2-5.1</td><td>Ш1</td><td>ПЧ (вход)</td><td>Вход от системы формирования или от Ш10 ВХ. ПЧ</td><td>~128 кГц</td><td>—</td><td>~150 Ом *(вход)*</td></tr>
+        <tr><td>Б2-5.1</td><td>Ш2</td><td>Г1 (вход)</td><td>Вход первого гетеродина</td><td>12,672 МГц</td><td>—</td><td>—</td></tr>
+        <tr><td>Б2-5.1</td><td>Ш3</td><td>Г2 (вход)</td><td>Вход второго гетеродина</td>
+          <td><strong><span id="form_g2_in">30</span> МГц</strong> (25 или 30 МГц)</td>
+          <td>—</td><td>—</td></tr>
+        <tr><td>Б2-5.1</td><td>Ш4</td><td>Г3 (вход)</td><td>Вход третьего гетеродина</td>
+          <td><strong><span id="form_g3_in">44.50099</span> МГц</strong> (42,8 – 72,8 МГц)</td>
+          <td>—</td><td>—</td></tr>
+        <tr><td>Б2-5.1</td><td>Ш6</td><td>ВЫХ. (основной)</td><td>Выход изделия (через УРЧ)</td><td>1,5 – 59,99999 МГц</td><td>—</td><td>75 ± 4 Ом *(внутренний)*</td></tr>
+
+        <!-- Б9-55.2 -->
+        <tr><td>Б9-55.2</td><td>Ш1</td><td>ПЧ (вход)</td><td>Вход ПЧ для АРН (Тлф)</td><td>~128 кГц</td><td>—</td><td>≥1500 Ом *(вход)*</td></tr>
+        <tr><td>Б9-55.2</td><td>Ш2</td><td>ВЫХ. ПЧ (выход)</td><td>Передача ПЧ на внешний разъём Ш9 УФ</td><td>~128 кГц</td><td>≥60 мВ (при 160 мВ на входе)</td><td>≥1500 Ом *(вых.)*</td></tr>
+        <tr><td>Б9-55.2</td><td>Ш3/7</td><td>АРН</td><td>Управляющее напряжение</td><td>—</td><td>−(2,0±0,5) … −(25⁺³₋₂) В</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Примечания:</h3>
+    <ul>
+      <li>Частоты <strong>МС, Г2, Г3</strong> зависят от пользовательской частоты — см. вкладку «Ввод частоты». Текущие значения выделены жирным.</li>
+      <li>Записи вида <code>*(вход)*</code> или <code>≥600 Ом</code> — указывают на тип нагрузки.</li>
+      <li>Диапазон <strong>1.5–29.9999 МГц</strong> — основной для изделия с Б10-5.2.</li>
+    </ul>
+  </div>
+
+  <!-- Остальные вкладки — заготовки -->
+  <div id="urh" class="tab-content">
+    <h2>УРЧ — Усилитель РЧ</h2>
+    <div class="placeholder">В разработке</div>
+  </div>
+
+  <div id="bz28" class="tab-content">
+    <h2>БЗ-28 — Блок задержки (28 мкс)</h2>
+    <div class="placeholder">В разработке</div>
+  </div>
+
+  <div id="sum" class="tab-content">
+    <h2>СУМ — Смеситель Усилитель Модулятор</h2>
+    <div class="placeholder">В разработке</div>
+  </div>
+
+  <div id="pdu" class="tab-content">
+    <h2>ПДУ — Пульт дистанционного управления</h2>
+    <div class="placeholder">В разработке</div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => {
+          el.classList.remove('active');
+        });
+        document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    function validateInput(input, min, max) {
+      const val = parseFloat(input.value);
+      input.setCustomValidity(isNaN(val) || val < min || val > max ? 'Недопустимое значение' : '');
+      input.reportValidity();
+    }
+
+    function getMsBase(f_khz) {
+      if (f_khz >= 0 && f_khz <= 999.99) return 12800;
+      if (f_khz >= 1000 && f_khz <= 1999.99) return 13800;
+      if (f_khz >= 2000 && f_khz <= 2999.99) return 12800;
+      if (f_khz >= 3000 && f_khz <= 3999.99) return 13800;
+      if (f_khz >= 4000 && f_khz <= 4999.99) return 12800;
+      if (f_khz >= 5000 && f_khz <= 5999.99) return 13800;
+      if (f_khz >= 6000 && f_khz <= 6999.99) return 12800;
+      if (f_khz >= 7000 && f_khz <= 7999.99) return 13800;
+      if (f_khz >= 8000 && f_khz <= 8999.99) return 12800;
+      if (f_khz >= 9000 && f_khz <= 9999.99) return 13800;
+      if (f_khz >= 10000 && f_khz <= 10999.99) return 12800;
+      if (f_khz >= 11000 && f_khz <= 11999.99) return 13800;
+      if (f_khz >= 12000 && f_khz <= 12999.99) return 12800;
+      if (f_khz >= 13000 && f_khz <= 13999.99) return 12800;
+      if (f_khz >= 14000 && f_khz <= 14999.99) return 13800;
+      if (f_khz >= 15000 && f_khz <= 15999.99) return 13800;
+      if (f_khz >= 16000 && f_khz <= 16999.99) return 12800;
+      if (f_khz >= 17000 && f_khz <= 17999.99) return 13800;
+      if (f_khz >= 18000 && f_khz <= 18999.99) return 12800;
+      if (f_khz >= 19000 && f_khz <= 19999.99) return 13800;
+      if (f_khz >= 20000 && f_khz <= 20999.99) return 13800;
+      if (f_khz >= 21000 && f_khz <= 21999.99) return 12800;
+      if (f_khz >= 22000 && f_khz <= 22999.99) return 13800;
+      if (f_khz >= 23000 && f_khz <= 23999.99) return 12800;
+      if (f_khz >= 24000 && f_khz <= 24999.99) return 13800;
+      if (f_khz >= 25000 && f_khz <= 25999.99) return 13800;
+      if (f_khz >= 26000 && f_khz <= 26999.99) return 12800;
+      if (f_khz >= 27000 && f_khz <= 27999.99) return 13800;
+      if (f_khz >= 28000 && f_khz <= 28999.99) return 12800;
+      if (f_khz >= 29000 && f_khz <= 29999.99) return 13800;
+      return 12800;
+    }
+
+    function calculate() {
+      if (!document.getElementById('input').classList.contains('active')) return;
+
+      const mhzEl = document.getElementById('mhz');
+      const khzIntEl = document.getElementById('khzInt');
+      const khzFracEl = document.getElementById('khzFrac');
+
+      validateInput(mhzEl, 1, 29);
+      validateInput(khzIntEl, 0, 999);
+      validateInput(khzFracEl, 0, 99);
+
+      if (!mhzEl.validity.valid || !khzIntEl.validity.valid || !khzFracEl.validity.valid) return;
+
+      const mhz = +mhzEl.value;
+      const khzInt = +khzIntEl.value;
+      const khzFrac = +khzFracEl.value;
+
+      const f_khz = mhz * 1000 + khzInt + khzFrac / 100;
+      const warning = document.getElementById('warning');
+      if (f_khz < 1500.00 || f_khz > 29999.99) {
+        warning.style.display = 'block';
+      } else {
+        warning.style.display = 'none';
+      }
+
+      let g2_mhz = 30;
+      if (
+        (f_khz >= 13000 && f_khz <= 14999.99) ||
+        (f_khz >= 20000 && f_khz <= 22999.99) ||
+        (f_khz >= 28000 && f_khz <= 29999.99)
+      ) {
+        g2_mhz = 25;
+      }
+
+      const ms_base = getMsBase(f_khz);
+      const delta = f_khz - Math.floor(f_khz / 1000) * 1000;
+      const ms_khz = ms_base + delta;
+      const g3_khz = f_khz + g2_mhz * 1000 + 12800;
+
+      document.getElementById('ms_khz').textContent = ms_khz.toFixed(2);
+      document.getElementById('ms_mhz').textContent = (ms_khz / 1000).toFixed(5);
+      document.getElementById('g2_mhz').textContent = g2_mhz;
+      document.getElementById('g3_mhz').textContent = (g3_khz / 1000).toFixed(5);
+      document.getElementById('f_out_mhz2').textContent = (f_khz / 1000).toFixed(5);
+
+      // Обновление динамических значений во вкладке "Устройство формирующее"
+      const ms_mhz = (ms_khz / 1000).toFixed(5);
+      const g3_mhz = (g3_khz / 1000).toFixed(5);
+
+      const updateElement = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+
+      updateElement('form_ms', ms_mhz);
+      updateElement('form_ms_in', ms_mhz);
+      updateElement('form_g2', g2_mhz);
+      updateElement('form_g2_dup', g2_mhz);
+      updateElement('form_g2_in', g2_mhz);
+      updateElement('form_g3', g3_mhz);
+      updateElement('form_g3_in', g3_mhz);
+    }
+
+    ['mhz', 'khzInt', 'khzFrac'].forEach(id => {
+      document.getElementById(id).addEventListener('input', calculate);
+    });
+    calculate();
+  </script>
+</body>
+</html>
